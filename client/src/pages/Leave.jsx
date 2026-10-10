@@ -56,9 +56,7 @@ const Leave = () => {
           <h1 className="text-2xl font-bold text-slate-900">Leave Management</h1>
           <p className="text-slate-500">Review and approve staff time off</p>
         </div>
-        <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors">
-          Apply Leave
-        </button>
+
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">

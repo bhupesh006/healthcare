@@ -27,6 +27,7 @@ app.use('/api/leaves', require('./routes/leaveRoutes'));
 app.use('/api/compliance', require('./routes/complianceRoutes'));
 app.use('/api/swaps', require('./routes/swapRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/departments', require('./routes/departmentRoutes'));
 
 // Basic route
 app.get('/', (req, res) => {

@@ -176,15 +176,7 @@ const StaffDashboard = () => {
                       </p>
                     </div>
                     
-                    {/* Action buttons appear on hover */}
-                    <div className="mt-3 pt-3 border-t border-blue-200/50 hidden group-hover:flex gap-2">
-                      <button 
-                        onClick={() => alert(`Shift swap request for ${shift.shiftType} submitted to management for approval.`)}
-                        className="flex-1 text-[10px] bg-white border border-blue-200 text-blue-600 py-1 rounded hover:bg-blue-50 transition-colors flex items-center justify-center gap-1"
-                      >
-                        <RefreshCw size={10} /> Swap
-                      </button>
-                    </div>
+
                   </div>
                 ) : (
                   <div className="h-full flex items-center justify-center text-slate-300 text-sm italic py-8">

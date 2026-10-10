@@ -47,10 +47,7 @@ const Swaps = () => {
           <h1 className="text-2xl font-bold text-slate-900">Shift Swaps</h1>
           <p className="text-slate-500">Manage and approve shift replacement requests</p>
         </div>
-        <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-          <RefreshCw size={18} />
-          <span>New Swap Request</span>
-        </button>
+
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">

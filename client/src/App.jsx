@@ -20,6 +20,7 @@ import OpenShifts from './pages/OpenShifts';
 import StaffDashboard from './pages/StaffDashboard';
 import StaffLeave from './pages/StaffLeave';
 import StaffCompliance from './pages/StaffCompliance';
+import StaffSwaps from './pages/StaffSwaps';
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useContext(AuthContext);
@@ -52,6 +53,7 @@ function AppRoutes() {
         <Route path="my-leave" element={<StaffLeave />} />
         <Route path="my-compliance" element={<StaffCompliance />} />
         <Route path="open-shifts" element={<OpenShifts />} />
+        <Route path="my-swaps" element={<StaffSwaps />} />
       </Route>
     </Routes>
   );

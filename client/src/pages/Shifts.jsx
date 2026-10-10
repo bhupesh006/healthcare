@@ -7,6 +7,9 @@ const Shifts = () => {
   const [selectedShift, setSelectedShift] = useState(null);
   const [assignmentData, setAssignmentData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newShift, setNewShift] = useState({ date: '', startTime: '08:00 AM', endTime: '04:00 PM', shiftType: 'MORNING', requiredStaff: 1, department: '' });
+  const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
     fetchShifts();
@@ -16,6 +19,8 @@ const Shifts = () => {
     try {
       const res = await axios.get('http://localhost:5000/api/shifts');
       setShifts(res.data);
+      const deptRes = await axios.get('http://localhost:5000/api/departments');
+      setDepartments(deptRes.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching shifts', error);
@@ -33,6 +38,33 @@ const Shifts = () => {
     }
   };
 
+  const handleAssignStaff = async (staffId) => {
+    try {
+      await axios.post(`http://localhost:5000/api/shifts/${selectedShift}/assign`, { staffId });
+      fetchShifts();
+      handleFindStaff(selectedShift);
+    } catch (error) {
+      console.error('Error assigning staff', error);
+      alert(error.response?.data?.message || 'Error assigning staff');
+    }
+  };
+
+  const handleCreateShift = async (e) => {
+    e.preventDefault();
+    try {
+      let deptId = newShift.department;
+      if (!deptId && departments.length > 0) {
+        deptId = departments[0]._id;
+      }
+      await axios.post('http://localhost:5000/api/shifts', { ...newShift, department: deptId });
+      setShowCreateModal(false);
+      fetchShifts();
+    } catch (error) {
+      console.error('Error creating shift', error);
+      alert(error.response?.data?.message || 'Error creating shift');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -40,7 +72,7 @@ const Shifts = () => {
           <h1 className="text-2xl font-bold text-slate-900">Shift Management</h1>
           <p className="text-slate-500">Manage schedules and staffing coverage</p>
         </div>
-        <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors">
+        <button onClick={() => setShowCreateModal(true)} className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors">
           Create Shift
         </button>
       </div>
@@ -106,7 +138,7 @@ const Shifts = () => {
                         <p className="font-medium text-slate-900">{staff.fullName}</p>
                         <p className="text-xs text-slate-600">{staff.role}</p>
                       </div>
-                      <button className="px-3 py-1 bg-white border border-green-300 text-green-700 rounded shadow-sm text-xs font-semibold hover:bg-green-100">
+                      <button onClick={() => handleAssignStaff(staff._id)} className="px-3 py-1 bg-white border border-green-300 text-green-700 rounded shadow-sm text-xs font-semibold hover:bg-green-100">
                         Assign
                       </button>
                     </div>
@@ -141,6 +173,56 @@ const Shifts = () => {
           )}
         </div>
       </div>
+
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Create New Shift</h2>
+            <form onSubmit={handleCreateShift} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Date</label>
+                <input type="date" required value={newShift.date} onChange={e => setNewShift({...newShift, date: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Department</label>
+                <select required value={newShift.department} onChange={e => setNewShift({...newShift, department: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none">
+                  <option value="">-- Select Department --</option>
+                  {departments.map(d => (
+                    <option key={d._id} value={d._id}>{d.name} ({d.code})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Start Time</label>
+                  <input type="text" required placeholder="08:00 AM" value={newShift.startTime} onChange={e => setNewShift({...newShift, startTime: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">End Time</label>
+                  <input type="text" required placeholder="04:00 PM" value={newShift.endTime} onChange={e => setNewShift({...newShift, endTime: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Shift Type</label>
+                <select value={newShift.shiftType} onChange={e => setNewShift({...newShift, shiftType: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none">
+                  <option value="MORNING">Morning</option>
+                  <option value="AFTERNOON">Afternoon</option>
+                  <option value="EVENING">Evening</option>
+                  <option value="NIGHT">Night</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Required Staff</label>
+                <input type="number" min="1" required value={newShift.requiredStaff} onChange={e => setNewShift({...newShift, requiredStaff: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none" />
+              </div>
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
+                <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg font-medium hover:bg-slate-50 transition-colors">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg font-medium transition-colors">Create Shift</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

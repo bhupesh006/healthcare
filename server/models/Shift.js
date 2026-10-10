@@ -41,6 +41,12 @@ const shiftSchema = new mongoose.Schema(
         type: String, // e.g., 'Nurse', 'Doctor'
       }
     ],
+    applicants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Staff',
+      }
+    ],
     requiredCertifications: [
       {
         type: String, // e.g., 'ACLS', 'BLS'

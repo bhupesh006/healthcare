@@ -34,6 +34,7 @@ const seedData = async () => {
     // 2. Create Departments
     const deptER = await Department.create({ name: 'Emergency', code: 'ER', description: 'Emergency Department' });
     const deptICU = await Department.create({ name: 'ICU', code: 'ICU', description: 'Intensive Care Unit' });
+    const deptGW = await Department.create({ name: 'General Ward', code: 'GW', description: 'General Ward' });
 
     console.log('Departments created...');
 
@@ -121,6 +122,10 @@ const seedData = async () => {
     
     // Kumar gets a conflicting shift today
     const today = new Date();
+    const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+    const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+    const nextWeek = new Date(today); nextWeek.setDate(nextWeek.getDate() + 4);
+
     await Shift.create({
       date: today,
       startTime: '08:00 AM',
@@ -128,8 +133,41 @@ const seedData = async () => {
       department: deptER._id,
       shiftType: 'MORNING',
       requiredStaff: 2,
-      assignedStaff: [createdStaff[2]._id], // Kumar
+      assignedStaff: [createdStaff[2]._id, createdStaff[3]._id], // Kumar, Divya
       status: 'PUBLISHED'
+    });
+
+    await Shift.create({
+      date: tomorrow,
+      startTime: '02:00 PM',
+      endTime: '10:00 PM',
+      department: deptICU._id,
+      shiftType: 'AFTERNOON',
+      requiredStaff: 3,
+      assignedStaff: [createdStaff[0]._id, createdStaff[4]._id], // Arun, Meena
+      status: 'UNDERSTAFFED'
+    });
+
+    await Shift.create({
+      date: yesterday,
+      startTime: '10:00 PM',
+      endTime: '06:00 AM',
+      department: deptER._id,
+      shiftType: 'NIGHT',
+      requiredStaff: 2,
+      assignedStaff: [createdStaff[1]._id, createdStaff[2]._id], // Priya, Kumar
+      status: 'COMPLETED'
+    });
+
+    await Shift.create({
+      date: nextWeek,
+      startTime: '08:00 AM',
+      endTime: '04:00 PM',
+      department: deptICU._id,
+      shiftType: 'MORNING',
+      requiredStaff: 4,
+      assignedStaff: [createdStaff[3]._id], // Divya
+      status: 'UNDERSTAFFED'
     });
 
     // Create the target shift for the demo: ER Night Shift requiring ACLS & BLS
@@ -148,18 +186,27 @@ const seedData = async () => {
 
     console.log('Shifts created...');
     
-    // 7. Create Pending Leave Request for Kumar (Conflicts with his shift today)
+    // 7. Create Leave Requests
     await Leave.create({
       staff: createdStaff[2]._id, // Kumar
       leaveType: 'SICK',
-      startDate: new Date(new Date().setHours(0,0,0,0)), // Today
-      endDate: new Date(new Date().setHours(23,59,59,999)),
+      startDate: new Date(today.setHours(0,0,0,0)), // Today
+      endDate: new Date(today.setHours(23,59,59,999)),
       reason: 'Fever and cold',
       status: 'PENDING'
     });
+
+    await Leave.create({
+      staff: createdStaff[1]._id, // Priya
+      leaveType: 'ANNUAL',
+      startDate: new Date(nextWeek.setHours(0,0,0,0)),
+      endDate: new Date(nextWeek.setDate(nextWeek.getDate() + 3)),
+      reason: 'Family trip',
+      status: 'APPROVED'
+    });
     console.log('Leave requests created...');
 
-    // 8. Create Shift Swap Request (Kumar wants Arun to cover his shift)
+    // 8. Create Shift Swap Requests
     await ShiftSwap.create({
       shift: targetShift._id, // the night shift
       requester: createdStaff[2]._id, // Kumar
@@ -167,6 +214,17 @@ const seedData = async () => {
       reason: 'Family emergency',
       status: 'PENDING'
     });
+
+    const completedSwapShift = await Shift.findOne({ shiftType: 'NIGHT', status: 'COMPLETED' });
+    if(completedSwapShift) {
+      await ShiftSwap.create({
+        shift: completedSwapShift._id,
+        requester: createdStaff[4]._id, // Meena
+        replacement: createdStaff[1]._id, // Priya
+        reason: 'Personal appointment',
+        status: 'APPROVED'
+      });
+    }
     console.log('Swap requests created...');
 
     // 9. Create Notifications

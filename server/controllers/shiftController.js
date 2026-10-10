@@ -6,7 +6,10 @@ const { findEligibleStaff } = require('../services/schedulingService');
 // @access  Private
 const getShifts = async (req, res) => {
   try {
-    const shifts = await Shift.find().populate('department').populate('assignedStaff', 'fullName role');
+    const shifts = await Shift.find()
+      .populate('department')
+      .populate('assignedStaff', 'fullName role')
+      .populate('applicants', 'fullName role phone email');
     res.json(shifts);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -63,6 +66,9 @@ const assignStaff = async (req, res) => {
 
     shift.assignedStaff.push(staffId);
     
+    // Remove from applicants if present
+    shift.applicants = shift.applicants.filter(appId => appId.toString() !== staffId);
+
     // Update shift status if required staff is met
     if (shift.assignedStaff.length >= shift.requiredStaff) {
       shift.status = 'PUBLISHED';
@@ -75,9 +81,34 @@ const assignStaff = async (req, res) => {
   }
 };
 
+// @desc    Apply for an open shift
+// @route   POST /api/shifts/:id/apply
+// @access  Private (Staff)
+const applyForShift = async (req, res) => {
+  try {
+    const { staffId } = req.body;
+    const shiftId = req.params.id;
+
+    const shift = await Shift.findById(shiftId);
+    if (!shift) return res.status(404).json({ message: 'Shift not found' });
+
+    if (shift.applicants.some(appId => appId.toString() === staffId)) {
+      return res.status(400).json({ message: 'You have already applied for this shift' });
+    }
+
+    shift.applicants.push(staffId);
+    await shift.save();
+
+    res.json(shift);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getShifts,
   createShift,
   getEligibleStaff,
-  assignStaff
+  assignStaff,
+  applyForShift
 };

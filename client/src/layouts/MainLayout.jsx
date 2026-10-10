@@ -33,6 +33,7 @@ const Sidebar = () => {
             <NavItem to="/my-leave" icon={<FileText size={20} />} label="Apply Leave" />
             <NavItem to="/my-compliance" icon={<FileCheck size={20} />} label="My Certifications" />
             <NavItem to="/open-shifts" icon={<Users size={20} />} label="Request Open Shifts" />
+            <NavItem to="/my-swaps" icon={<RefreshCw size={20} />} label="My Shift Swaps" />
           </>
         )}
       </nav>
