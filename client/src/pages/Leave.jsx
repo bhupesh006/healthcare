@@ -110,7 +110,7 @@ const Leave = () => {
                 <th className="p-4">Leave Category</th>
                 <th className="p-4">Duration & Dates</th>
                 <th className="p-4">Status</th>
-                <th className="p-4">Roster Collision Impact</th>
+                <th className="p-4">Shift Collision Impact</th>
                 <th className="p-4 pr-6 text-right">Decision</th>
               </tr>
             </thead>

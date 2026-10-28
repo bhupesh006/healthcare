@@ -262,7 +262,7 @@ const StaffDashboard = () => {
               Welcome back, {user?.name?.split(' ')[0] || 'Nurse'}!
             </h1>
             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#e6f8fa] text-[#00828e] border border-[#bfe8ee]">
-              Frontline Staff Portal
+              Staff Portal
             </span>
           </div>
         </div>

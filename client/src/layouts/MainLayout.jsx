@@ -73,7 +73,7 @@ const Sidebar = () => {
               <span className="text-lg font-black tracking-tight text-white">Health</span>
               <span className="text-lg font-black text-cyan-400">+</span>
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">CareRoster OS</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Clinical OS</p>
           </div>
         </Link>
       </div>
@@ -88,7 +88,7 @@ const Sidebar = () => {
             {!isStaff ? (
               <>
                 <NavItem to="/" icon={Clock} label="Dashboard" active={location.pathname === '/'} />
-                <NavItem to="/calendar" icon={Calendar} label="Roster Calendar" active={location.pathname === '/calendar'} />
+                <NavItem to="/calendar" icon={Calendar} label="Calendar" active={location.pathname === '/calendar'} />
                 <NavItem to="/staff" icon={User} label="Staff Directory" active={location.pathname === '/staff'} />
                 <NavItem to="/shifts" icon={FileText} label="Shift Management" active={location.pathname === '/shifts'} />
                 <NavItem to="/attendance" icon={UserCheck} label="Attendance Tracker" active={location.pathname === '/attendance'} />
@@ -202,12 +202,6 @@ const Header = () => {
 
       {/* Right Controls & Profile */}
       <div className="flex items-center gap-3.5">
-        {/* Campus Location Badge */}
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100/80 border border-slate-200/60 text-xs font-medium text-slate-600">
-          <Building2 className="w-3.5 h-3.5 text-[#00a8b5]" />
-          <span>St. Jude Metro • Main ER</span>
-        </div>
-
         {/* Notifications Bell */}
         <div className="relative">
           <button

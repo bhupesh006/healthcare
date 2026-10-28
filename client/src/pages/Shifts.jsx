@@ -253,7 +253,7 @@ const Shifts = () => {
             </span>
           </div>
           <p className="text-xs text-slate-500 font-medium mt-1">
-            Create shifts, match eligible staff by hospital department, and balance clinical rosters.
+            Create shifts, match eligible staff by hospital department, and balance clinical schedules.
           </p>
         </div>
 
@@ -278,7 +278,7 @@ const Shifts = () => {
         <div className="lg:col-span-5 bg-white rounded-3xl shadow-xs border border-slate-200/80 p-5 flex flex-col h-[calc(100vh-230px)]">
           <div className="flex flex-col gap-2 pb-3 mb-3 border-b border-slate-100">
             <div className="flex items-center justify-between">
-              <h2 className="font-extrabold text-slate-900 text-sm">Shift Roster Queue</h2>
+              <h2 className="font-extrabold text-slate-900 text-sm">Shift Schedule Queue</h2>
               <span className="text-xs text-slate-400">Click shift to assign</span>
             </div>
 
@@ -324,7 +324,7 @@ const Shifts = () => {
             {loading ? (
               <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
                 <Loader2 size={24} className="animate-spin text-[#00a8b5]" />
-                <p className="text-xs font-semibold">Loading shift roster...</p>
+                <p className="text-xs font-semibold">Loading shifts...</p>
               </div>
             ) : filteredShifts.length === 0 ? (
               <div className="text-center py-12 text-slate-400 space-y-2">

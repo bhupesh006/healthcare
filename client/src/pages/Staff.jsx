@@ -506,7 +506,7 @@ const Staff = () => {
               {[
                 { time: '08:00 AM - 04:00 PM', name: 'Morning General Shift', dept: assigningStaff.department?.name || 'Emergency' },
                 { time: '04:00 PM - 12:00 AM', name: 'Evening Shift (Peak Hours)', dept: assigningStaff.department?.name || 'Emergency' },
-                { time: '12:00 AM - 08:00 AM', name: 'Night Critical Roster', dept: assigningStaff.department?.name || 'Emergency' }
+                { time: '12:00 AM - 08:00 AM', name: 'Night Critical Shift', dept: assigningStaff.department?.name || 'Emergency' }
               ].map((slot, index) => (
                 <button
                   key={index}

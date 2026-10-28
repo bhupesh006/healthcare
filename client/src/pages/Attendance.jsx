@@ -265,7 +265,7 @@ const Attendance = () => {
               Staff Attendance &amp; Time Clock
             </h1>
             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#e6f8fa] text-[#00828e] border border-[#bfe8ee]">
-              Live Roster
+              Live Attendance
             </span>
           </div>
           <p className="text-xs text-slate-500 font-medium mt-1">
@@ -428,7 +428,7 @@ const Attendance = () => {
                   <td colSpan="8" className="p-12 text-center text-slate-400">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div className="w-6 h-6 border-2 border-[#00a8b5] border-t-transparent rounded-full animate-spin" />
-                      <p className="font-semibold text-xs">Loading attendance roster...</p>
+                      <p className="font-semibold text-xs">Loading attendance records...</p>
                     </div>
                   </td>
                 </tr>
