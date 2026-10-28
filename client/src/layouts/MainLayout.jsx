@@ -57,6 +57,35 @@ const Sidebar = () => {
   const { user } = useContext(AuthContext);
   const location = useLocation();
   const isStaff = user?.role === 'STAFF';
+  const [counts, setCounts] = useState({ openShifts: 0, swaps: 0, leaves: 0 });
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const [shiftsRes, swapsRes, leavesRes] = await Promise.allSettled([
+          axios.get('http://localhost:5000/api/shifts'),
+          axios.get('http://localhost:5000/api/swaps'),
+          axios.get('http://localhost:5000/api/leaves')
+        ]);
+        const sData = shiftsRes.status === 'fulfilled' ? shiftsRes.value.data : [];
+        const swData = swapsRes.status === 'fulfilled' ? swapsRes.value.data : [];
+        const lData = leavesRes.status === 'fulfilled' ? leavesRes.value.data : [];
+
+        const openCount = sData.filter(s => s.status === 'UNDERSTAFFED' || s.status === 'PUBLISHED').length;
+        const pendingSwaps = swData.filter(s => s.status === 'PENDING' || s.status === 'ACCEPTED_BY_STAFF').length;
+        const pendingLeaves = lData.filter(l => l.status === 'PENDING').length;
+
+        setCounts({
+          openShifts: openCount,
+          swaps: pendingSwaps,
+          leaves: pendingLeaves
+        });
+      } catch (e) {
+        // quiet
+      }
+    };
+    fetchCounts();
+  }, [location.pathname]);
 
   return (
     <aside className="w-64 bg-slate-950 text-white min-h-screen p-5 flex flex-col border-r border-slate-900 select-none">
@@ -110,15 +139,15 @@ const Sidebar = () => {
           <nav className="space-y-1">
             {!isStaff ? (
               <>
-                <NavItem to="/open-shifts" icon={Users} label="Open Shifts" badge="3" active={location.pathname === '/open-shifts'} />
-                <NavItem to="/swaps" icon={RefreshCw} label="Shift Swaps" badge="2" active={location.pathname === '/swaps'} />
+                <NavItem to="/open-shifts" icon={Users} label="Open Shifts" badge={counts.openShifts > 0 ? counts.openShifts : undefined} active={location.pathname === '/open-shifts'} />
+                <NavItem to="/swaps" icon={RefreshCw} label="Shift Swaps" badge={counts.swaps > 0 ? counts.swaps : undefined} active={location.pathname === '/swaps'} />
                 <NavItem to="/compliance" icon={FileCheck} label="Compliance Review" active={location.pathname === '/compliance'} />
-                <NavItem to="/leave" icon={FileText} label="Leave Requests" badge="5" active={location.pathname === '/leave'} />
+                <NavItem to="/leave" icon={FileText} label="Leave Requests" badge={counts.leaves > 0 ? counts.leaves : undefined} active={location.pathname === '/leave'} />
               </>
             ) : (
               <>
-                <NavItem to="/open-shifts" icon={Users} label="Claim Open Shifts" badge="3" active={location.pathname === '/open-shifts'} />
-                <NavItem to="/my-swaps" icon={RefreshCw} label="My Shift Swaps" active={location.pathname === '/my-swaps'} />
+                <NavItem to="/open-shifts" icon={Users} label="Claim Open Shifts" badge={counts.openShifts > 0 ? counts.openShifts : undefined} active={location.pathname === '/open-shifts'} />
+                <NavItem to="/my-swaps" icon={RefreshCw} label="My Shift Swaps" badge={counts.swaps > 0 ? counts.swaps : undefined} active={location.pathname === '/my-swaps'} />
               </>
             )}
           </nav>

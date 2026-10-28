@@ -18,8 +18,9 @@ const StaffLeave = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      const staffIdToSend = user?.staffId?._id || user?.staffId;
       await axios.post('http://localhost:5000/api/leaves', {
-        staff: user.staffId,
+        staff: staffIdToSend,
         leaveType: formData.leaveType,
         startDate: formData.startDate,
         endDate: formData.endDate,

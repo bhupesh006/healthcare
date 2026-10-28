@@ -53,7 +53,7 @@ const StaffCompliance = () => {
         return (loggedInStaffId && sId === loggedInStaffId) || (loggedInName && sName === loggedInName);
       });
 
-      setRecords(myRecords.length > 0 ? myRecords : res.data.slice(0, 4));
+      setRecords(myRecords);
       setLoadingRecords(false);
     } catch (err) {
       console.error('Error fetching staff certificates', err);

@@ -29,16 +29,20 @@ const StaffSwaps = () => {
         axios.get('http://localhost:5000/api/shifts')
       ]);
 
-      const staffIdStr = user.staffId?._id || user.staffId;
+      const staffIdStr = (user?.staffId?._id || user?.staffId || '').toString();
 
-      const mySwaps = swapsRes.data.filter(s => 
-        s.requester?._id === staffIdStr || s.replacement?._id === staffIdStr
-      );
+      const mySwaps = swapsRes.data.filter(s => {
+        const reqId = (s.requester?._id || s.requester || '').toString();
+        const repId = (s.replacement?._id || s.replacement || '').toString();
+        return reqId === staffIdStr || repId === staffIdStr;
+      });
       setSwaps(mySwaps);
 
       const assignedShifts = shiftsRes.data.filter(shift => 
-        shift.assignedStaff.some(staff => (staff._id || staff) === staffIdStr) &&
-        new Date(shift.date) >= new Date(new Date().setHours(0,0,0,0))
+        shift.assignedStaff && shift.assignedStaff.some(staff => {
+          const sId = (staff?._id || staff || '').toString();
+          return sId === staffIdStr;
+        })
       );
       setMyShifts(assignedShifts);
       
