@@ -28,7 +28,9 @@ const Staff = () => {
   const [selectedStaffRecord, setSelectedStaffRecord] = useState(null);
   const [assigningStaff, setAssigningStaff] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [actionNotice, setActionNotice] = useState('');
+  const [actionNotice, setActionNotice] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [departments, setDepartments] = useState([]);
   
   // New Staff Form state
   const [newStaffForm, setNewStaffForm] = useState({
@@ -42,7 +44,19 @@ const Staff = () => {
 
   useEffect(() => {
     fetchStaff();
+    fetchDepartments();
   }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/departments');
+      if (res.data && res.data.length > 0) {
+        setDepartments(res.data);
+      }
+    } catch (e) {
+      console.warn('Could not fetch departments list:', e);
+    }
+  };
 
   const fetchStaff = async () => {
     try {
@@ -60,20 +74,24 @@ const Staff = () => {
   const handleCreateStaff = async (e) => {
     e.preventDefault();
     try {
+      setSubmitting(true);
       const res = await axios.post('http://localhost:5000/api/staff', newStaffForm);
       setStaffList(prev => [res.data, ...prev]);
       setShowAddModal(false);
       setNewStaffForm({ fullName: '', role: 'Nurse', employeeId: '', department: 'Emergency', email: '', phone: '' });
-      triggerNotice(`Added ${res.data.fullName} to clinical directory`);
+      triggerNotice(`Successfully registered ${res.data.fullName}`);
     } catch (err) {
       console.error('Error creating staff member', err);
-      triggerNotice('Error registering staff member');
+      const errorMsg = err.response?.data?.message || 'Error registering staff member';
+      triggerNotice(errorMsg, true);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const triggerNotice = (msg) => {
-    setActionNotice(msg);
-    setTimeout(() => setActionNotice(''), 3500);
+  const triggerNotice = (msg, isError = false) => {
+    setActionNotice({ text: typeof msg === 'string' ? msg : 'Notice', isError });
+    setTimeout(() => setActionNotice(null), 3800);
   };
 
   const filteredStaff = staffList.filter(staff => {
@@ -92,9 +110,17 @@ const Staff = () => {
       
       {/* Toast Notification */}
       {actionNotice && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900 text-white text-xs font-semibold shadow-2xl border border-slate-700 animate-fadeIn">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>{actionNotice}</span>
+        <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl text-xs font-semibold shadow-2xl border animate-fadeIn ${
+          actionNotice.isError
+            ? 'bg-rose-950 text-rose-100 border-rose-800'
+            : 'bg-slate-900 text-white border-slate-700'
+        }`}>
+          {actionNotice.isError ? (
+            <X className="w-4 h-4 text-rose-400" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          )}
+          <span>{actionNotice.text || actionNotice}</span>
         </div>
       )}
 
@@ -453,7 +479,7 @@ const Staff = () => {
                   <label className="block text-xs font-bold text-slate-700 mb-1">Employee ID</label>
                   <input
                     type="text"
-                    placeholder="EMP010"
+                    placeholder="Auto-generated if empty"
                     value={newStaffForm.employeeId}
                     onChange={(e) => setNewStaffForm({ ...newStaffForm, employeeId: e.target.value })}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00a8b5]/20 focus:border-[#00a8b5]"
@@ -468,10 +494,19 @@ const Staff = () => {
                   onChange={(e) => setNewStaffForm({ ...newStaffForm, department: e.target.value })}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00a8b5]/20 focus:border-[#00a8b5]"
                 >
-                  <option value="Emergency">Emergency</option>
-                  <option value="ICU">ICU</option>
-                  <option value="General Ward">General Ward</option>
-                  <option value="Cardiology">Cardiology</option>
+                  {departments && departments.length > 0 ? (
+                    departments.map((dept) => (
+                      <option key={dept._id || dept.name} value={dept.name}>
+                        {dept.name} ({dept.code || 'DEPT'})
+                      </option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Emergency">Emergency</option>
+                      <option value="ICU">ICU</option>
+                      <option value="General Ward">General Ward</option>
+                    </>
+                  )}
                 </select>
               </div>
 
@@ -481,7 +516,7 @@ const Staff = () => {
                   <input
                     type="email"
                     required
-                    placeholder="staff@hc.com"
+                    placeholder="staff@hospital.com"
                     value={newStaffForm.email}
                     onChange={(e) => setNewStaffForm({ ...newStaffForm, email: e.target.value })}
                     className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00a8b5]/20 focus:border-[#00a8b5]"
@@ -509,9 +544,10 @@ const Staff = () => {
                 </button>
                 <button
                   type="submit"
-                  className="py-2 px-4 rounded-xl text-xs font-bold text-white bg-[#00a8b5] hover:bg-[#00929e] shadow-md shadow-[#00a8b5]/20 transition-all cursor-pointer"
+                  disabled={submitting}
+                  className="py-2 px-4 rounded-xl text-xs font-bold text-white bg-[#00a8b5] hover:bg-[#00929e] disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-[#00a8b5]/20 transition-all cursor-pointer"
                 >
-                  Register Staff
+                  {submitting ? 'Registering...' : 'Register Staff'}
                 </button>
               </div>
             </form>
