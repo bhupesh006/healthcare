@@ -57,25 +57,18 @@ const Staff = () => {
     }
   };
 
-  const handleCreateStaff = (e) => {
+  const handleCreateStaff = async (e) => {
     e.preventDefault();
-    const newMember = {
-      _id: `staff-${Date.now()}`,
-      fullName: newStaffForm.fullName,
-      role: newStaffForm.role,
-      employeeId: newStaffForm.employeeId || `EMP0${staffList.length + 1}`,
-      department: { name: newStaffForm.department },
-      email: newStaffForm.email,
-      phone: newStaffForm.phone || '555-0199',
-      status: 'ACTIVE',
-      certifications: ['BLS Certified', 'Hospital Onboarding Complete'],
-      shiftsThisWeek: 0,
-      hoursWorked: 0
-    };
-    setStaffList([newMember, ...staffList]);
-    setShowAddModal(false);
-    setNewStaffForm({ fullName: '', role: 'Nurse', employeeId: '', department: 'Emergency', email: '', phone: '' });
-    triggerNotice(`Added ${newMember.fullName} to clinical directory`);
+    try {
+      const res = await axios.post('http://localhost:5000/api/staff', newStaffForm);
+      setStaffList(prev => [res.data, ...prev]);
+      setShowAddModal(false);
+      setNewStaffForm({ fullName: '', role: 'Nurse', employeeId: '', department: 'Emergency', email: '', phone: '' });
+      triggerNotice(`Added ${res.data.fullName} to clinical directory`);
+    } catch (err) {
+      console.error('Error creating staff member', err);
+      triggerNotice('Error registering staff member');
+    }
   };
 
   const triggerNotice = (msg) => {

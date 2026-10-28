@@ -21,8 +21,8 @@ import {
 
 const Login = () => {
   const [loginType, setLoginType] = useState('ADMIN'); // 'ADMIN' or 'STAFF'
-  const [email, setEmail] = useState('manager@healthcare.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
@@ -34,26 +34,9 @@ const Login = () => {
 
   const { login } = useContext(AuthContext);
 
-  // Sync demo credentials when switching tabs
   useEffect(() => {
-    if (loginType === 'ADMIN') {
-      setEmail('manager@healthcare.com');
-      setPassword('password123');
-    } else {
-      setEmail('arun@hc.com');
-      setPassword('password123');
-    }
     setError('');
   }, [loginType]);
-
-  const handleQuickFill = (type, demoEmail, demoPass, label) => {
-    setLoginType(type);
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setError('');
-    setFeedbackMsg(`Selected demo profile: ${label}`);
-    setTimeout(() => setFeedbackMsg(''), 3000);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -289,40 +272,6 @@ const Login = () => {
                 )}
               </button>
             </form>
-
-            {/* Quick Demo Profiles (Clean 1-Click Buttons) */}
-            <div className="mt-4 pt-3.5 border-t border-slate-100 text-center">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                Quick Demo Profiles
-              </span>
-              <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('ADMIN', 'manager@healthcare.com', 'password123', 'Dr. Sarah (Manager)')}
-                  className={`p-1.5 px-2 rounded-lg border text-left font-medium transition-all ${
-                    loginType === 'ADMIN' && email === 'manager@healthcare.com'
-                      ? 'bg-[#e6f8fa] border-[#00a8b5] text-[#00828e]'
-                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <span className="font-bold block text-slate-800">Dr. Sarah</span>
-                  <span className="text-[10px] text-slate-500">Manager (ER)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('STAFF', 'arun@hc.com', 'password123', 'Nurse Arun')}
-                  className={`p-1.5 px-2 rounded-lg border text-left font-medium transition-all ${
-                    loginType === 'STAFF' && email === 'arun@hc.com'
-                      ? 'bg-[#e6f8fa] border-[#00a8b5] text-[#00828e]'
-                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  <span className="font-bold block text-slate-800">Nurse Arun</span>
-                  <span className="text-[10px] text-slate-500">Staff (Nurse)</span>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
