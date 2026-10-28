@@ -12,6 +12,7 @@ import Shifts from './pages/Shifts';
 import Swaps from './pages/Swaps';
 import Leave from './pages/Leave';
 import Compliance from './pages/Compliance';
+import Attendance from './pages/Attendance';
 import Login from './pages/Login';
 import Calendar from './pages/Calendar';
 import OpenShifts from './pages/OpenShifts';
@@ -45,6 +46,7 @@ function AppRoutes() {
         <Route path="calendar" element={<Calendar />} />
         <Route path="staff" element={<Staff />} />
         <Route path="shifts" element={<Shifts />} />
+        <Route path="attendance" element={<Attendance />} />
         <Route path="swaps" element={<Swaps />} />
         <Route path="leave" element={<Leave />} />
         <Route path="compliance" element={<Compliance />} />

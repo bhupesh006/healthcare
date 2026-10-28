@@ -59,13 +59,17 @@ const seedData = async () => {
 
     console.log('Admin & Manager created...');
 
-    // 4. Create Staff Profiles (Matching the demo scenario from requirements)
+    // 4. Create Staff Profiles (9 Clinical Personnel for complete 3x3 matrix)
     const staffData = [
-      { name: 'Arun', role: 'Nurse', email: 'arun@hc.com', phone: '11111111', empId: 'EMP001' },
-      { name: 'Priya', role: 'Nurse', email: 'priya@hc.com', phone: '22222222', empId: 'EMP002' },
-      { name: 'Kumar', role: 'Nurse', email: 'kumar@hc.com', phone: '33333333', empId: 'EMP003' },
-      { name: 'Divya', role: 'Nurse', email: 'divya@hc.com', phone: '44444444', empId: 'EMP004' },
-      { name: 'Meena', role: 'Nurse', email: 'meena@hc.com', phone: '55555555', empId: 'EMP005' },
+      { name: 'Arun', role: 'Nurse', email: 'arun@hc.com', phone: '11111111', empId: 'EMP001', deptId: deptER._id },
+      { name: 'Priya', role: 'Nurse', email: 'priya@hc.com', phone: '22222222', empId: 'EMP002', deptId: deptER._id },
+      { name: 'Kumar', role: 'Nurse', email: 'kumar@hc.com', phone: '33333333', empId: 'EMP003', deptId: deptER._id },
+      { name: 'Divya', role: 'Nurse', email: 'divya@hc.com', phone: '44444444', empId: 'EMP004', deptId: deptER._id },
+      { name: 'Meena', role: 'Nurse', email: 'meena@hc.com', phone: '55555555', empId: 'EMP005', deptId: deptER._id },
+      { name: 'Dr. Sarah', role: 'Doctor', email: 'sarah.dr@hc.com', phone: '66666666', empId: 'EMP006', deptId: deptER._id },
+      { name: 'Dr. Rajesh', role: 'Doctor', email: 'rajesh.dr@hc.com', phone: '77777777', empId: 'EMP007', deptId: deptICU._id },
+      { name: 'Ananya', role: 'Nurse', email: 'ananya@hc.com', phone: '88888888', empId: 'EMP008', deptId: deptICU._id },
+      { name: 'Vikram', role: 'Staff', email: 'vikram@hc.com', phone: '99999999', empId: 'EMP009', deptId: deptGW._id },
     ];
 
     const createdStaff = [];
@@ -84,7 +88,7 @@ const seedData = async () => {
         email: s.email,
         phone: s.phone,
         role: s.role,
-        department: deptER._id,
+        department: s.deptId || deptER._id,
         joiningDate: new Date('2024-01-01'),
         availability: { monday: true, tuesday: true, wednesday: true, thursday: true, friday: true, saturday: true, sunday: true }
       });

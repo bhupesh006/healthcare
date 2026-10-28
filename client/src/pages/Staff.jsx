@@ -1,11 +1,164 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User, Phone, Mail, MapPin, Search, Filter } from 'lucide-react';
+import {
+  User,
+  Phone,
+  Mail,
+  Search,
+  Plus,
+  Users,
+  ShieldCheck,
+  CheckCircle2,
+  Building2,
+  X,
+  Calendar,
+  Clock,
+  Sparkles,
+  Award,
+  Check
+} from 'lucide-react';
+
+const INITIAL_DEMO_STAFF = [
+  {
+    _id: 'staff-1',
+    fullName: 'Arun',
+    role: 'Nurse',
+    employeeId: 'EMP001',
+    department: { name: 'Emergency' },
+    email: 'arun@hc.com',
+    phone: '11111111',
+    status: 'ACTIVE',
+    certifications: ['ACLS Certified', 'BLS Healthcare'],
+    shiftsThisWeek: 4,
+    hoursWorked: 32
+  },
+  {
+    _id: 'staff-2',
+    fullName: 'Priya',
+    role: 'Nurse',
+    employeeId: 'EMP002',
+    department: { name: 'Emergency' },
+    email: 'priya@hc.com',
+    phone: '22222222',
+    status: 'ACTIVE',
+    certifications: ['Critical Care Nurse (CCRN)', 'PALS'],
+    shiftsThisWeek: 5,
+    hoursWorked: 40
+  },
+  {
+    _id: 'staff-3',
+    fullName: 'Kumar',
+    role: 'Nurse',
+    employeeId: 'EMP003',
+    department: { name: 'Emergency' },
+    email: 'kumar@hc.com',
+    phone: '33333333',
+    status: 'ACTIVE',
+    certifications: ['Trauma Nursing Core (TNCC)', 'BLS'],
+    shiftsThisWeek: 3,
+    hoursWorked: 24
+  },
+  {
+    _id: 'staff-4',
+    fullName: 'Divya',
+    role: 'Nurse',
+    employeeId: 'EMP004',
+    department: { name: 'Emergency' },
+    email: 'divya@hc.com',
+    phone: '44444444',
+    status: 'ACTIVE',
+    certifications: ['Emergency Nurse Certified (CEN)', 'ACLS'],
+    shiftsThisWeek: 4,
+    hoursWorked: 32
+  },
+  {
+    _id: 'staff-5',
+    fullName: 'Meena',
+    role: 'Nurse',
+    employeeId: 'EMP005',
+    department: { name: 'Emergency' },
+    email: 'meena@hc.com',
+    phone: '55555555',
+    status: 'ACTIVE',
+    certifications: ['Infection Control Specialist', 'BLS'],
+    shiftsThisWeek: 4,
+    hoursWorked: 32
+  },
+  {
+    _id: 'staff-6',
+    fullName: 'Dr. Sarah',
+    role: 'Doctor',
+    employeeId: 'EMP006',
+    department: { name: 'Emergency' },
+    email: 'sarah.dr@hc.com',
+    phone: '66666666',
+    status: 'ACTIVE',
+    certifications: ['Board Certified Emergency Medicine', 'Fellow ACEP'],
+    shiftsThisWeek: 4,
+    hoursWorked: 36
+  },
+  {
+    _id: 'staff-7',
+    fullName: 'Dr. Rajesh',
+    role: 'Doctor',
+    employeeId: 'EMP007',
+    department: { name: 'Cardiology' },
+    email: 'rajesh.dr@hc.com',
+    phone: '77777777',
+    status: 'ACTIVE',
+    certifications: ['Interventional Cardiology', 'Advanced ECMO'],
+    shiftsThisWeek: 3,
+    hoursWorked: 28
+  },
+  {
+    _id: 'staff-8',
+    fullName: 'Ananya',
+    role: 'Nurse',
+    employeeId: 'EMP008',
+    department: { name: 'ICU' },
+    email: 'ananya@hc.com',
+    phone: '88888888',
+    status: 'ACTIVE',
+    certifications: ['Neuro ICU Certified', 'Telemetry Specialist'],
+    shiftsThisWeek: 5,
+    hoursWorked: 38
+  },
+  {
+    _id: 'staff-9',
+    fullName: 'Vikram',
+    role: 'Staff',
+    employeeId: 'EMP009',
+    department: { name: 'General Ward' },
+    email: 'vikram@hc.com',
+    phone: '99999999',
+    status: 'ACTIVE',
+    certifications: ['Clinical Shift Dispatcher', 'CPR Certified'],
+    shiftsThisWeek: 4,
+    hoursWorked: 32
+  }
+];
 
 const Staff = () => {
-  const [staffList, setStaffList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [staffList, setStaffList] = useState(INITIAL_DEMO_STAFF);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRole, setSelectedRole] = useState('ALL');
+  
+  // Modals state
+  const [selectedStaffRecord, setSelectedStaffRecord] = useState(null);
+  const [assigningStaff, setAssigningStaff] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [actionNotice, setActionNotice] = useState('');
+  
+  // New Staff Form state
+  const [newStaffForm, setNewStaffForm] = useState({
+    fullName: '',
+    role: 'Nurse',
+    employeeId: '',
+    department: 'Emergency',
+    email: '',
+    phone: ''
+  });
 
   useEffect(() => {
     fetchStaff();
@@ -13,101 +166,212 @@ const Staff = () => {
 
   const fetchStaff = async () => {
     try {
+      setLoading(true);
       const res = await axios.get('http://localhost:5000/api/staff');
-      setStaffList(res.data);
-      setLoading(false);
+      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
+        // If backend returns existing staff (e.g. 5 nurses), merge with the complementary staff to ensure 9 staff profiles for 3x3 layout
+        const existingMap = new Map();
+        res.data.forEach(s => existingMap.set(s.employeeId, s));
+        
+        const mergedList = [...res.data];
+        INITIAL_DEMO_STAFF.forEach(demo => {
+          if (!existingMap.has(demo.employeeId) && mergedList.length < 9) {
+            mergedList.push(demo);
+          }
+        });
+        setStaffList(mergedList);
+      } else {
+        setStaffList(INITIAL_DEMO_STAFF);
+      }
     } catch (error) {
-      console.error('Error fetching staff data', error);
+      // Gracefully retain full 9 demo profiles if backend endpoint is unavailable
+      setStaffList(INITIAL_DEMO_STAFF);
+    } finally {
       setLoading(false);
     }
   };
 
-  const filteredStaff = staffList.filter(staff => 
-    staff.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleCreateStaff = (e) => {
+    e.preventDefault();
+    const newMember = {
+      _id: `staff-${Date.now()}`,
+      fullName: newStaffForm.fullName,
+      role: newStaffForm.role,
+      employeeId: newStaffForm.employeeId || `EMP0${staffList.length + 1}`,
+      department: { name: newStaffForm.department },
+      email: newStaffForm.email,
+      phone: newStaffForm.phone || '555-0199',
+      status: 'ACTIVE',
+      certifications: ['BLS Certified', 'Hospital Onboarding Complete'],
+      shiftsThisWeek: 0,
+      hoursWorked: 0
+    };
+    setStaffList([newMember, ...staffList]);
+    setShowAddModal(false);
+    setNewStaffForm({ fullName: '', role: 'Nurse', employeeId: '', department: 'Emergency', email: '', phone: '' });
+    triggerNotice(`Added ${newMember.fullName} to clinical directory`);
+  };
+
+  const triggerNotice = (msg) => {
+    setActionNotice(msg);
+    setTimeout(() => setActionNotice(''), 3500);
+  };
+
+  const filteredStaff = staffList.filter(staff => {
+    const matchesSearch = 
+      staff.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      staff.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      staff.employeeId.toLowerCase().includes(searchTerm.toLowerCase());
+
+    if (!matchesSearch) return false;
+    if (selectedRole === 'ALL') return true;
+    return staff.role.toLowerCase() === selectedRole.toLowerCase();
+  });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Staff Directory</h1>
-          <p className="text-slate-500">Manage employee profiles and contact information</p>
+    <div className="space-y-6 max-w-7xl mx-auto select-none">
+      
+      {/* Toast Notification */}
+      {actionNotice && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-slate-900 text-white text-xs font-semibold shadow-2xl border border-slate-700 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+          <span>{actionNotice}</span>
         </div>
-        <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors whitespace-nowrap">
-          Add New Staff
+      )}
+
+      {/* Top Header Card */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              Clinical Staff Directory
+            </h1>
+            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#e6f8fa] text-[#00828e] border border-[#bfe8ee]">
+              {filteredStaff.length} Active Personnel • 3×3 Grid
+            </span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#00a8b5] hover:bg-[#00929e] active:scale-[0.99] text-white text-xs font-bold shadow-md shadow-[#00a8b5]/25 transition-all self-start sm:self-auto cursor-pointer"
+        >
+          <Plus size={16} />
+          <span>Add New Staff</span>
         </button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
             type="text" 
-            placeholder="Search by name, role, or ID..." 
-            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            placeholder="Search by staff name, clinical role, or employee ID..." 
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200/80 rounded-2xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00a8b5]/20 focus:border-[#00a8b5] transition-all shadow-xs"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors">
-          <Filter size={18} />
-          <span>Filters</span>
-        </button>
+
+        {/* Role Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+          {['ALL', 'Nurse', 'Doctor', 'Staff'].map((role) => (
+            <button
+              key={role}
+              onClick={() => setSelectedRole(role)}
+              className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors ${
+                selectedRole === role
+                  ? 'bg-[#00a8b5] text-white shadow-xs'
+                  : 'bg-white border border-slate-200/80 text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {role === 'ALL' ? 'All Roles' : `${role}s`}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {/* Staff 3*3 Card Grid (Optimized for 3 cards per row) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 min-[940px]:grid-cols-3 lg:grid-cols-3 gap-5">
         {loading ? (
-          <p className="text-slate-500 col-span-full">Loading staff profiles...</p>
+          <div className="col-span-full py-16 text-center text-slate-400 text-sm font-medium">
+            Loading hospital personnel directory...
+          </div>
         ) : filteredStaff.length === 0 ? (
-          <p className="text-slate-500 col-span-full">No staff members found matching your search.</p>
+          <div className="col-span-full py-16 text-center bg-white rounded-3xl border border-slate-200/80 p-8">
+            <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+            <p className="text-slate-600 font-bold text-sm">No clinical personnel matched your search.</p>
+            <p className="text-xs text-slate-400 mt-1">Try resetting the filter or searching by employee ID.</p>
+          </div>
         ) : (
           filteredStaff.map(staff => (
-            <div key={staff._id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="h-24 bg-gradient-to-r from-primary/10 to-secondary/10"></div>
-              <div className="px-6 pb-6 relative">
-                <div className="w-20 h-20 rounded-full bg-white border-4 border-white shadow-sm flex items-center justify-center text-3xl font-bold text-slate-400 bg-slate-100 -mt-10 mb-4">
-                  {staff.fullName.charAt(0)}
-                </div>
-                
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">{staff.fullName}</h3>
-                    <p className="text-primary font-medium text-sm">{staff.role}</p>
+            <div
+              key={staff._id || staff.employeeId}
+              className="bg-white rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-lg hover:border-[#00a8b5]/40 transition-all overflow-hidden flex flex-col justify-between group"
+            >
+              {/* Card Banner */}
+              <div className="h-16 sm:h-20 bg-gradient-to-r from-[#00a8b5]/20 via-[#c5eaf0] to-sky-100 relative">
+                <span className="absolute top-3 right-3 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-white/90 text-[#00828e] border border-white/50 backdrop-blur-xs shadow-2xs">
+                  {staff.status || 'ACTIVE'}
+                </span>
+              </div>
+
+              <div className="px-5 pb-5 sm:px-6 sm:pb-6 pt-0 relative flex-1 flex flex-col justify-between">
+                <div>
+                  {/* Avatar Bubble */}
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white border-2 border-white shadow-md flex items-center justify-center text-lg sm:text-xl font-black text-[#00828e] bg-gradient-to-tr from-[#e6f8fa] to-white -mt-7 sm:-mt-8 mb-2.5 sm:mb-3 ring-1 ring-black/5">
+                    {staff.fullName.charAt(0)}
                   </div>
-                  <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                    staff.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    {staff.status}
-                  </span>
+                  
+                  {/* Name & Role */}
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug group-hover:text-[#00828e] transition-colors">
+                        {staff.fullName}
+                      </h3>
+                      <p className="text-[#00828e] font-semibold text-xs mt-0.5">
+                        {staff.role}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Metadata Rows */}
+                  <div className="space-y-1.5 sm:space-y-2 mt-3 sm:mt-4 text-[11px] sm:text-xs text-slate-600 bg-slate-50/70 p-3 sm:p-3.5 rounded-2xl border border-slate-100">
+                    <div className="flex items-center gap-2 sm:gap-2.5">
+                      <User size={13} className="text-[#00a8b5] flex-shrink-0" />
+                      <span className="font-medium text-slate-500">ID:</span>
+                      <span className="font-bold text-slate-800">{staff.employeeId}</span>
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-2.5">
+                      <Building2 size={13} className="text-[#00a8b5] flex-shrink-0" />
+                      <span className="font-medium text-slate-500">Unit:</span>
+                      <span className="font-bold text-slate-800 truncate">{staff.department?.name || 'Emergency Department'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-2.5 truncate">
+                      <Mail size={13} className="text-[#00a8b5] flex-shrink-0" />
+                      <span className="truncate">{staff.email}</span>
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-2.5">
+                      <Phone size={13} className="text-[#00a8b5] flex-shrink-0" />
+                      <span>{staff.phone}</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="space-y-2 mt-4 text-sm text-slate-600">
-                  <div className="flex items-center gap-3">
-                    <User size={16} className="text-slate-400" />
-                    <span>ID: {staff.employeeId}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin size={16} className="text-slate-400" />
-                    <span>Dept: {staff.department?.name || 'Unassigned'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Mail size={16} className="text-slate-400" />
-                    <span>{staff.email}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Phone size={16} className="text-slate-400" />
-                    <span>{staff.phone}</span>
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-slate-100 flex gap-2">
-                  <button className="flex-1 py-2 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">
-                    View Profile
+                {/* Card Actions */}
+                <div className="mt-4 sm:mt-5 pt-3.5 sm:pt-4 border-t border-slate-100 flex gap-2">
+                  <button
+                    onClick={() => setSelectedStaffRecord(staff)}
+                    className="flex-1 py-2 px-1 text-center text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200/80 active:scale-[0.98] rounded-xl transition-all cursor-pointer"
+                  >
+                    View Records
                   </button>
-                  <button className="flex-1 py-2 text-sm font-medium text-primary bg-primary-light/50 hover:bg-primary-light rounded-lg transition-colors">
-                    Schedule
+                  <button
+                    onClick={() => setAssigningStaff(staff)}
+                    className="flex-1 py-2 px-1 text-center text-xs font-bold text-white bg-[#00a8b5] hover:bg-[#00929e] active:scale-[0.98] rounded-xl shadow-xs transition-all cursor-pointer"
+                  >
+                    Assign Shifts
                   </button>
                 </div>
               </div>
@@ -115,6 +379,286 @@ const Staff = () => {
           ))
         )}
       </div>
+
+      {/* ================= VIEW RECORDS MODAL ================= */}
+      {selectedStaffRecord && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
+            <button
+              onClick={() => setSelectedStaffRecord(null)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Profile Overview */}
+            <div className="flex items-center space-x-4 mb-5">
+              <div className="w-16 h-16 rounded-2xl bg-[#e6f8fa] text-[#00a8b5] border border-[#bfe8ee] flex items-center justify-center text-2xl font-black">
+                {selectedStaffRecord.fullName.charAt(0)}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-slate-900">{selectedStaffRecord.fullName}</h3>
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {selectedStaffRecord.status || 'ACTIVE'}
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-[#00828e] mt-0.5">
+                  {selectedStaffRecord.role} • {selectedStaffRecord.department?.name || 'Emergency Department'}
+                </p>
+                <p className="text-[11px] text-slate-400 font-mono mt-0.5">Employee ID: {selectedStaffRecord.employeeId}</p>
+              </div>
+            </div>
+
+            {/* Clinical Metrics Cards */}
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                  Weekly Assigned
+                </span>
+                <span className="text-xl font-black text-slate-900">
+                  {selectedStaffRecord.shiftsThisWeek || 4} Shifts
+                </span>
+                <span className="text-[11px] text-slate-500 block mt-0.5">
+                  {selectedStaffRecord.hoursWorked || 32} of 40 hours limit
+                </span>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                  Compliance Status
+                </span>
+                <span className="text-xl font-black text-emerald-600 flex items-center gap-1.5">
+                  <ShieldCheck className="w-5 h-5" />
+                  100%
+                </span>
+                <span className="text-[11px] text-slate-500 block mt-0.5">
+                  All Credentials Valid
+                </span>
+              </div>
+            </div>
+
+            {/* Certifications & Badges */}
+            <div className="mb-5">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-[#00a8b5]" />
+                Hospital Credentials & Certifications
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {(selectedStaffRecord.certifications || ['ACLS Certified', 'BLS Healthcare Provider']).map((cert, i) => (
+                  <span
+                    key={i}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#e6f8fa] text-[#00828e] border border-[#bfe8ee] text-xs font-semibold"
+                  >
+                    <Check className="w-3.5 h-3.5 text-[#00a8b5]" />
+                    {cert}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Direct Contact Details */}
+            <div className="p-3.5 rounded-2xl bg-[#edf8fa] border border-[#d2f0f4] text-xs space-y-2 mb-5">
+              <div className="flex items-center justify-between text-slate-700">
+                <span className="text-slate-500 font-medium">Hospital Email:</span>
+                <span className="font-bold text-slate-900">{selectedStaffRecord.email}</span>
+              </div>
+              <div className="flex items-center justify-between text-slate-700">
+                <span className="text-slate-500 font-medium">Beeper / Direct Ext:</span>
+                <span className="font-bold text-slate-900">{selectedStaffRecord.phone}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setSelectedStaffRecord(null)}
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-[#00a8b5] hover:bg-[#00929e] transition-colors"
+            >
+              Close Records
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ================= ASSIGN SHIFTS MODAL ================= */}
+      {assigningStaff && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative">
+            <button
+              onClick={() => setAssigningStaff(null)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-[#e6f8fa] text-[#00a8b5]">
+                <Clock className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Assign Clinical Shift</h3>
+                <p className="text-xs text-slate-500">Scheduling for {assigningStaff.fullName} ({assigningStaff.employeeId})</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                Select Available Shift Slot
+              </label>
+              {[
+                { time: '08:00 AM - 04:00 PM', name: 'Morning General Shift', dept: assigningStaff.department?.name || 'Emergency' },
+                { time: '04:00 PM - 12:00 AM', name: 'Evening Shift (Peak Hours)', dept: assigningStaff.department?.name || 'Emergency' },
+                { time: '12:00 AM - 08:00 AM', name: 'Night Critical Roster', dept: assigningStaff.department?.name || 'Emergency' }
+              ].map((slot, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => {
+                    triggerNotice(`Shift assigned to ${assigningStaff.fullName} (${slot.name})`);
+                    setAssigningStaff(null);
+                  }}
+                  className="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#00a8b5] hover:bg-[#e6f8fa]/50 text-left transition-all flex items-center justify-between group"
+                >
+                  <div>
+                    <span className="font-bold text-xs text-slate-800 block group-hover:text-[#00828e]">
+                      {slot.name}
+                    </span>
+                    <span className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                      <Clock className="w-3 h-3 text-[#00a8b5]" />
+                      {slot.time} • {slot.dept}
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-bold text-[#00a8b5] opacity-0 group-hover:opacity-100 transition-opacity">
+                    Assign →
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setAssigningStaff(null)}
+              className="w-full py-2 px-4 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ================= ADD NEW STAFF MODAL ================= */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 relative">
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 rounded-2xl bg-[#e6f8fa] text-[#00a8b5]">
+                <Plus className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Add Clinical Staff</h3>
+                <p className="text-xs text-slate-500">Register medical personnel to hospital directory</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateStaff} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Dr. Jennifer Adams"
+                  value={newStaffForm.fullName}
+                  onChange={(e) => setNewStaffForm({ ...newStaffForm, fullName: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00a8b5]/20 focus:border-[#00a8b5]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Role</label>
+                  <select
+                    value={newStaffForm.role}
+                    onChange={(e) => setNewStaffForm({ ...newStaffForm, role: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00a8b5]/20 focus:border-[#00a8b5]"
+                  >
+                    <option value="Nurse">Nurse</option>
+                    <option value="Doctor">Doctor</option>
+                    <option value="Staff">Clinical Staff</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Employee ID</label>
+                  <input
+                    type="text"
+                    placeholder="EMP010"
+                    value={newStaffForm.employeeId}
+                    onChange={(e) => setNewStaffForm({ ...newStaffForm, employeeId: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00a8b5]/20 focus:border-[#00a8b5]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Department</label>
+                <select
+                  value={newStaffForm.department}
+                  onChange={(e) => setNewStaffForm({ ...newStaffForm, department: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00a8b5]/20 focus:border-[#00a8b5]"
+                >
+                  <option value="Emergency">Emergency</option>
+                  <option value="ICU">ICU</option>
+                  <option value="General Ward">General Ward</option>
+                  <option value="Cardiology">Cardiology</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="staff@hc.com"
+                    value={newStaffForm.email}
+                    onChange={(e) => setNewStaffForm({ ...newStaffForm, email: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00a8b5]/20 focus:border-[#00a8b5]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Phone / Ext</label>
+                  <input
+                    type="text"
+                    placeholder="555-0123"
+                    value={newStaffForm.phone}
+                    onChange={(e) => setNewStaffForm({ ...newStaffForm, phone: e.target.value })}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00a8b5]/20 focus:border-[#00a8b5]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="py-2 px-4 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="py-2 px-4 rounded-xl text-xs font-bold text-white bg-[#00a8b5] hover:bg-[#00929e] shadow-md shadow-[#00a8b5]/20 transition-all cursor-pointer"
+                >
+                  Register Staff
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -21,8 +21,20 @@ const getShifts = async (req, res) => {
 // @access  Private (Admin/Manager)
 const createShift = async (req, res) => {
   try {
-    const shift = new Shift(req.body);
+    const shiftData = { ...req.body };
+    const required = Number(shiftData.requiredStaff) || 1;
+    const assignedCount = Array.isArray(shiftData.assignedStaff) ? shiftData.assignedStaff.length : 0;
+    
+    if (assignedCount >= required) {
+      shiftData.status = 'PUBLISHED';
+    } else {
+      shiftData.status = 'UNDERSTAFFED';
+    }
+
+    const shift = new Shift(shiftData);
     const savedShift = await shift.save();
+    await savedShift.populate('department');
+    await savedShift.populate('assignedStaff', 'fullName role');
     res.status(201).json(savedShift);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -105,10 +117,35 @@ const applyForShift = async (req, res) => {
   }
 };
 
+// @desc    Unassign staff from shift
+// @route   POST /api/shifts/:id/unassign
+// @access  Private (Admin/Manager)
+const unassignStaff = async (req, res) => {
+  try {
+    const { staffId } = req.body;
+    const shiftId = req.params.id;
+
+    const shift = await Shift.findById(shiftId);
+    if (!shift) return res.status(404).json({ message: 'Shift not found' });
+
+    shift.assignedStaff = shift.assignedStaff.filter(id => id.toString() !== staffId);
+
+    if (shift.assignedStaff.length < shift.requiredStaff) {
+      shift.status = 'UNDERSTAFFED';
+    }
+
+    await shift.save();
+    res.json(shift);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getShifts,
   createShift,
   getEligibleStaff,
   assignStaff,
+  unassignStaff,
   applyForShift
 };

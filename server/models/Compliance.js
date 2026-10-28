@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+require('./Department');
+require('./Staff');
 
 const complianceSchema = new mongoose.Schema(
   {

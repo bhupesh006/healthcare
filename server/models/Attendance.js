@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+require('./Staff');
+require('./Shift');
 
 const attendanceSchema = new mongoose.Schema(
   {
@@ -26,9 +28,15 @@ const attendanceSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['PRESENT', 'LATE', 'ABSENT', 'HALF_DAY', 'LEAVE'],
+      enum: ['PRESENT', 'LATE', 'ABSENT', 'HALF_DAY', 'LEAVE', 'ON_DUTY'],
       default: 'PRESENT',
     },
+    location: String,
+    biometricVerified: {
+      type: Boolean,
+      default: false,
+    },
+    biometricTerminalId: String,
     notes: String,
   },
   {

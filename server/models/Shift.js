@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+require('./Department');
 
 const shiftSchema = new mongoose.Schema(
   {

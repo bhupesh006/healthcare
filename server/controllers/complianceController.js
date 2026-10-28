@@ -4,7 +4,17 @@ const Compliance = require('../models/Compliance');
 // @route   GET /api/compliance
 const getComplianceRecords = async (req, res) => {
   try {
-    const records = await Compliance.find().populate('staff', 'fullName role department');
+    const filter = {};
+    if (req.query.staff) {
+      filter.staff = req.query.staff;
+    }
+    const records = await Compliance.find(filter)
+      .populate({
+        path: 'staff',
+        select: 'fullName role employeeId department email phone',
+        populate: { path: 'department', select: 'name code' }
+      })
+      .sort({ createdAt: -1 });
     res.json(records);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -38,22 +48,32 @@ const getComplianceStats = async (req, res) => {
 // @route   POST /api/compliance
 const createComplianceRecord = async (req, res) => {
   try {
-    const record = new Compliance(req.body);
-    // In a real app, calculate status based on expiryDate here
+    const recordData = { ...req.body };
     const today = new Date();
-    const expiry = new Date(record.expiryDate);
-    const diffTime = Math.abs(expiry - today);
+    const expiry = new Date(recordData.expiryDate || today);
+    const diffTime = expiry - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
     
-    if (expiry < today) {
-      record.status = 'EXPIRED';
-    } else if (diffDays <= 30) {
-      record.status = 'EXPIRING_SOON';
+    if (recordData.verificationStatus === 'VERIFIED') {
+      if (expiry < today) {
+        recordData.status = 'EXPIRED';
+      } else if (diffDays <= 30) {
+        recordData.status = 'EXPIRING_SOON';
+      } else {
+        recordData.status = 'VALID';
+      }
     } else {
-      record.status = 'PENDING_VERIFICATION';
+      recordData.verificationStatus = 'PENDING';
+      recordData.status = 'PENDING_VERIFICATION';
     }
 
+    const record = new Compliance(recordData);
     const savedRecord = await record.save();
+    await savedRecord.populate({
+      path: 'staff',
+      select: 'fullName role employeeId department',
+      populate: { path: 'department', select: 'name code' }
+    });
     res.status(201).json(savedRecord);
   } catch (error) {
     res.status(400).json({ message: error.message });
