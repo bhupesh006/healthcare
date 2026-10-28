@@ -71,26 +71,26 @@ const Dashboard = () => {
         axios.get('http://localhost:5000/api/swaps')
       ]);
 
-      if (shiftsRes.status === 'fulfilled' && shiftsRes.data) {
-        setShifts(shiftsRes.data);
+      if (shiftsRes.status === 'fulfilled' && shiftsRes.value?.data) {
+        setShifts(shiftsRes.value.data);
       }
-      if (deptRes.status === 'fulfilled' && deptRes.data) {
-        setDepartments(deptRes.data);
+      if (deptRes.status === 'fulfilled' && deptRes.value?.data) {
+        setDepartments(deptRes.value.data);
       }
-      if (staffRes.status === 'fulfilled' && staffRes.data) {
-        setStaffList(staffRes.data);
+      if (staffRes.status === 'fulfilled' && staffRes.value?.data) {
+        setStaffList(staffRes.value.data);
       }
-      if (attRes.status === 'fulfilled' && attRes.data) {
-        setAttendanceList(attRes.data);
+      if (attRes.status === 'fulfilled' && attRes.value?.data) {
+        setAttendanceList(attRes.value.data);
       }
-      if (complianceRes.status === 'fulfilled' && complianceRes.data) {
-        setComplianceRecords(complianceRes.data);
+      if (complianceRes.status === 'fulfilled' && complianceRes.value?.data) {
+        setComplianceRecords(complianceRes.value.data);
       }
-      if (leavesRes.status === 'fulfilled' && leavesRes.data) {
-        setLeavesList(leavesRes.data);
+      if (leavesRes.status === 'fulfilled' && leavesRes.value?.data) {
+        setLeavesList(leavesRes.value.data);
       }
-      if (swapsRes.status === 'fulfilled' && swapsRes.data) {
-        setSwapsList(swapsRes.data);
+      if (swapsRes.status === 'fulfilled' && swapsRes.value?.data) {
+        setSwapsList(swapsRes.value.data);
       }
     } catch (err) {
       console.warn('Error loading live dashboard telemetry', err);
@@ -122,9 +122,11 @@ const Dashboard = () => {
 
       // Sum required and assigned staff dynamically
       const required = deptShifts.reduce((acc, s) => {
-        const req = s.requiredStaffCount !== undefined && s.requiredStaffCount !== null
-          ? Number(s.requiredStaffCount)
-          : Math.max(1, s.assignedStaff?.length || 1);
+        const req = (s.requiredStaff !== undefined && s.requiredStaff !== null)
+          ? Number(s.requiredStaff)
+          : ((s.requiredStaffCount !== undefined && s.requiredStaffCount !== null)
+              ? Number(s.requiredStaffCount)
+              : Math.max(1, s.assignedStaff?.length || 1));
         return acc + req;
       }, 0);
 
@@ -172,9 +174,11 @@ const Dashboard = () => {
 
       // Planned hours: 8 hours per required staff slot
       const planned = dayShifts.reduce((acc, s) => {
-        const slots = s.requiredStaffCount !== undefined && s.requiredStaffCount !== null
-          ? Number(s.requiredStaffCount)
-          : Math.max(1, s.assignedStaff?.length || 1);
+        const slots = (s.requiredStaff !== undefined && s.requiredStaff !== null)
+          ? Number(s.requiredStaff)
+          : ((s.requiredStaffCount !== undefined && s.requiredStaffCount !== null)
+              ? Number(s.requiredStaffCount)
+              : Math.max(1, s.assignedStaff?.length || 1));
         return acc + (slots * 8);
       }, 0);
 
@@ -236,16 +240,15 @@ const Dashboard = () => {
     // 2. Shift Coverage
     const totalShifts = shifts.length;
     const understaffedCount = shifts.filter(s => {
-      const req = s.requiredStaffCount !== undefined && s.requiredStaffCount !== null
-        ? Number(s.requiredStaffCount)
-        : 1;
-      return s.status === 'UNDERSTAFFED' || (s.assignedStaff?.length || 0) < req;
+      const req = Number(s.requiredStaff ?? s.requiredStaffCount ?? 1);
+      const assigned = s.assignedStaff?.length || 0;
+      return s.status === 'UNDERSTAFFED' || assigned < req;
     }).length;
 
     const fullyStaffedCount = Math.max(0, totalShifts - understaffedCount);
     const coverageRate = totalShifts > 0
       ? Math.round((fullyStaffedCount / totalShifts) * 100)
-      : 100;
+      : 0;
 
     // 3. Compliance Rate
     const totalCompliance = complianceRecords.length;
@@ -253,7 +256,7 @@ const Dashboard = () => {
     const expiringSoonCount = complianceRecords.filter(c => c.status === 'EXPIRING_SOON').length;
     const complianceRate = totalCompliance > 0
       ? Math.round((validCount / totalCompliance) * 100)
-      : 100;
+      : (totalStaff > 0 ? 100 : 0);
 
     // 4. Action Queue
     const pendingLeaves = leavesList.filter(l => l.status === 'PENDING').length;
@@ -267,6 +270,7 @@ const Dashboard = () => {
       fullyStaffedCount,
       understaffedCount,
       coverageRate,
+      totalCompliance,
       complianceRate,
       expiringSoonCount,
       totalPending,
@@ -392,8 +396,14 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-900 tracking-tight">{metrics.coverageRate}%</span>
-            {metrics.understaffedCount > 0 ? (
+            <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              {metrics.totalShifts > 0 ? `${metrics.coverageRate}%` : '0%'}
+            </span>
+            {metrics.totalShifts === 0 ? (
+              <span className="inline-flex items-center gap-0.5 text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                No Shifts
+              </span>
+            ) : metrics.understaffedCount > 0 ? (
               <span className="inline-flex items-center gap-0.5 text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
                 {metrics.understaffedCount} Alert{metrics.understaffedCount > 1 ? 's' : ''}
               </span>
@@ -404,7 +414,11 @@ const Dashboard = () => {
             )}
           </div>
           <p className="mt-2 text-xs text-slate-500 font-medium">
-            <strong>{metrics.fullyStaffedCount} of {metrics.totalShifts} shifts</strong> fully staffed
+            {metrics.totalShifts === 0 ? (
+              'No shifts scheduled in system'
+            ) : (
+              <span><strong>{metrics.fullyStaffedCount} of {metrics.totalShifts} shifts</strong> fully staffed</span>
+            )}
           </p>
         </div>
 
@@ -417,15 +431,25 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-emerald-600 tracking-tight">{metrics.complianceRate}%</span>
-            <span className="inline-flex items-center gap-0.5 text-xs font-bold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded-full">
-              Audit Verified
+            <span className="text-3xl font-extrabold text-emerald-600 tracking-tight">
+              {metrics.totalCompliance > 0 || metrics.totalStaff > 0 ? `${metrics.complianceRate}%` : '0%'}
+            </span>
+            <span className={`inline-flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full ${
+              metrics.totalCompliance === 0 && metrics.totalStaff === 0
+                ? 'text-slate-500 bg-slate-100'
+                : metrics.complianceRate < 80
+                  ? 'text-amber-700 bg-amber-100/60'
+                  : 'text-emerald-700 bg-emerald-100/60'
+            }`}>
+              {metrics.totalCompliance === 0 && metrics.totalStaff === 0 ? 'No Records' : 'Audit Verified'}
             </span>
           </div>
           <p className="mt-2 text-xs text-slate-500 font-medium">
-            {metrics.expiringSoonCount > 0 
-              ? `${metrics.expiringSoonCount} renewals due soon` 
-              : 'All staff certifications verified'}
+            {metrics.totalCompliance === 0 && metrics.totalStaff === 0 
+              ? 'No staff certifications on file'
+              : metrics.expiringSoonCount > 0 
+                ? `${metrics.expiringSoonCount} renewals due soon` 
+                : 'All staff certifications verified'}
           </p>
         </div>
 
@@ -640,7 +664,7 @@ const Dashboard = () => {
                           </span>
                         </div>
                         <p className="text-[11px] text-amber-800 mt-0.5">
-                          {c.certificationName} renewal required.
+                          {c.requirement || c.certificationName || 'Certification'} renewal required.
                         </p>
                       </div>
                     </div>
@@ -735,9 +759,7 @@ const Dashboard = () => {
               ) : (
                 todayShifts.slice(0, 4).map(shift => {
                   const assignedCount = shift.assignedStaff?.length || 0;
-                  const reqCount = shift.requiredStaffCount !== undefined && shift.requiredStaffCount !== null
-                    ? Number(shift.requiredStaffCount)
-                    : Math.max(1, assignedCount);
+                  const reqCount = Number(shift.requiredStaff ?? shift.requiredStaffCount ?? 1);
                   const isUnderstaffed = assignedCount < reqCount;
 
                   return (
