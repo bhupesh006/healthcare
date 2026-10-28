@@ -14,7 +14,31 @@ const app = express();
 // Middleware
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], credentials: true }));
+
+// Permissive CORS configuration supporting Vercel and local development
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (
+        origin.includes('localhost') ||
+        origin.includes('vercel.app') ||
+        allowedOrigins.includes(origin)
+      ) {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  })
+);
+
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(cookieParser());
@@ -30,9 +54,9 @@ app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/departments', require('./routes/departmentRoutes'));
 app.use('/api/attendance', require('./routes/attendanceRoutes'));
 
-// Basic route
+// Basic health check route
 app.get('/', (req, res) => {
-  res.send('API is running...');
+  res.send('Health+ Clinical API is running...');
 });
 
 // Error handling middleware
@@ -47,6 +71,11 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
+// Only listen directly when not executing in a Vercel serverless lambda
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  });
+}
+
+module.exports = app;
