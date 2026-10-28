@@ -205,11 +205,7 @@ const Dashboard = () => {
   // ================= 3. DYNAMIC GRAPH: STAFF BY DEPARTMENT UNIT (DONUT) =================
   const departmentDistributionData = useMemo(() => {
     if (staffList.length === 0) {
-      return [
-        { name: 'Emergency', value: 40, count: 0, color: '#00a8b5' },
-        { name: 'ICU Ward', value: 35, count: 0, color: '#0284c7' },
-        { name: 'General Ward', value: 25, count: 0, color: '#10b981' }
-      ];
+      return [];
     }
 
     const palette = ['#00a8b5', '#0284c7', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
@@ -282,9 +278,7 @@ const Dashboard = () => {
   // Today's Active Shifts
   const todayShifts = useMemo(() => {
     const today = new Date();
-    const todayMatches = shifts.filter(s => s.date && isSameDay(new Date(s.date), today));
-    // If no shifts on today's exact date, display the active shifts
-    return todayMatches.length > 0 ? todayMatches : shifts.slice(0, 4);
+    return shifts.filter(s => s.date && isSameDay(new Date(s.date), today));
   }, [shifts]);
 
   // Active on-duty personnel

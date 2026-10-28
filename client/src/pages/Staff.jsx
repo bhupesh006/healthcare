@@ -18,128 +18,8 @@ import {
   Check
 } from 'lucide-react';
 
-const INITIAL_DEMO_STAFF = [
-  {
-    _id: 'staff-1',
-    fullName: 'Arun',
-    role: 'Nurse',
-    employeeId: 'EMP001',
-    department: { name: 'Emergency' },
-    email: 'arun@hc.com',
-    phone: '11111111',
-    status: 'ACTIVE',
-    certifications: ['ACLS Certified', 'BLS Healthcare'],
-    shiftsThisWeek: 4,
-    hoursWorked: 32
-  },
-  {
-    _id: 'staff-2',
-    fullName: 'Priya',
-    role: 'Nurse',
-    employeeId: 'EMP002',
-    department: { name: 'Emergency' },
-    email: 'priya@hc.com',
-    phone: '22222222',
-    status: 'ACTIVE',
-    certifications: ['Critical Care Nurse (CCRN)', 'PALS'],
-    shiftsThisWeek: 5,
-    hoursWorked: 40
-  },
-  {
-    _id: 'staff-3',
-    fullName: 'Kumar',
-    role: 'Nurse',
-    employeeId: 'EMP003',
-    department: { name: 'Emergency' },
-    email: 'kumar@hc.com',
-    phone: '33333333',
-    status: 'ACTIVE',
-    certifications: ['Trauma Nursing Core (TNCC)', 'BLS'],
-    shiftsThisWeek: 3,
-    hoursWorked: 24
-  },
-  {
-    _id: 'staff-4',
-    fullName: 'Divya',
-    role: 'Nurse',
-    employeeId: 'EMP004',
-    department: { name: 'Emergency' },
-    email: 'divya@hc.com',
-    phone: '44444444',
-    status: 'ACTIVE',
-    certifications: ['Emergency Nurse Certified (CEN)', 'ACLS'],
-    shiftsThisWeek: 4,
-    hoursWorked: 32
-  },
-  {
-    _id: 'staff-5',
-    fullName: 'Meena',
-    role: 'Nurse',
-    employeeId: 'EMP005',
-    department: { name: 'Emergency' },
-    email: 'meena@hc.com',
-    phone: '55555555',
-    status: 'ACTIVE',
-    certifications: ['Infection Control Specialist', 'BLS'],
-    shiftsThisWeek: 4,
-    hoursWorked: 32
-  },
-  {
-    _id: 'staff-6',
-    fullName: 'Dr. Sarah',
-    role: 'Doctor',
-    employeeId: 'EMP006',
-    department: { name: 'Emergency' },
-    email: 'sarah.dr@hc.com',
-    phone: '66666666',
-    status: 'ACTIVE',
-    certifications: ['Board Certified Emergency Medicine', 'Fellow ACEP'],
-    shiftsThisWeek: 4,
-    hoursWorked: 36
-  },
-  {
-    _id: 'staff-7',
-    fullName: 'Dr. Rajesh',
-    role: 'Doctor',
-    employeeId: 'EMP007',
-    department: { name: 'Cardiology' },
-    email: 'rajesh.dr@hc.com',
-    phone: '77777777',
-    status: 'ACTIVE',
-    certifications: ['Interventional Cardiology', 'Advanced ECMO'],
-    shiftsThisWeek: 3,
-    hoursWorked: 28
-  },
-  {
-    _id: 'staff-8',
-    fullName: 'Ananya',
-    role: 'Nurse',
-    employeeId: 'EMP008',
-    department: { name: 'ICU' },
-    email: 'ananya@hc.com',
-    phone: '88888888',
-    status: 'ACTIVE',
-    certifications: ['Neuro ICU Certified', 'Telemetry Specialist'],
-    shiftsThisWeek: 5,
-    hoursWorked: 38
-  },
-  {
-    _id: 'staff-9',
-    fullName: 'Vikram',
-    role: 'Staff',
-    employeeId: 'EMP009',
-    department: { name: 'General Ward' },
-    email: 'vikram@hc.com',
-    phone: '99999999',
-    status: 'ACTIVE',
-    certifications: ['Clinical Shift Dispatcher', 'CPR Certified'],
-    shiftsThisWeek: 4,
-    hoursWorked: 32
-  }
-];
-
 const Staff = () => {
-  const [staffList, setStaffList] = useState(INITIAL_DEMO_STAFF);
+  const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('ALL');
@@ -168,24 +48,10 @@ const Staff = () => {
     try {
       setLoading(true);
       const res = await axios.get('http://localhost:5000/api/staff');
-      if (res.data && Array.isArray(res.data) && res.data.length > 0) {
-        // If backend returns existing staff (e.g. 5 nurses), merge with the complementary staff to ensure 9 staff profiles for 3x3 layout
-        const existingMap = new Map();
-        res.data.forEach(s => existingMap.set(s.employeeId, s));
-        
-        const mergedList = [...res.data];
-        INITIAL_DEMO_STAFF.forEach(demo => {
-          if (!existingMap.has(demo.employeeId) && mergedList.length < 9) {
-            mergedList.push(demo);
-          }
-        });
-        setStaffList(mergedList);
-      } else {
-        setStaffList(INITIAL_DEMO_STAFF);
-      }
+      setStaffList(res.data || []);
     } catch (error) {
-      // Gracefully retain full 9 demo profiles if backend endpoint is unavailable
-      setStaffList(INITIAL_DEMO_STAFF);
+      console.error('Error fetching staff list', error);
+      setStaffList([]);
     } finally {
       setLoading(false);
     }
