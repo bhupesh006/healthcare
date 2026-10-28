@@ -91,15 +91,9 @@ const Login = () => {
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-[radial-gradient(#00a8b5_1.2px,transparent_1.2px)] [background-size:18px_18px] opacity-15 pointer-events-none rounded-bl-[36px]" />
 
         {/* ================= LEFT PANE: BRAND & MEDICAL TEAM SHOWCASE ================= */}
-        <div className="relative flex flex-col items-center justify-between p-8 sm:p-10 lg:p-12 bg-gradient-to-br from-[#ebf9fa] via-[#e2f5f8] to-[#d4f1f5] border-b lg:border-b-0 lg:border-r border-[#cdeef3] overflow-hidden select-none">
-          {/* Top Tagline Pill */}
-          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 border border-[#bfe8ee] text-[#00828e] text-xs font-semibold shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-[#00a8b5] animate-ping" />
-            <span>Clinical Workforce & Shift Orchestration</span>
-          </div>
-
+        <div className="relative flex flex-col items-center justify-center p-8 sm:p-10 lg:p-12 bg-gradient-to-br from-[#ebf9fa] via-[#e2f5f8] to-[#d4f1f5] border-b lg:border-b-0 lg:border-r border-[#cdeef3] overflow-hidden select-none">
           {/* Center Vector Illustration with Circular Glow */}
-          <div className="relative w-full max-w-[420px] my-6 flex items-center justify-center">
+          <div className="relative w-full max-w-[420px] flex items-center justify-center">
             {/* Background Decorative Rings */}
             <div className="absolute w-[280px] sm:w-[360px] h-[280px] sm:h-[360px] rounded-full bg-[#daf4f8] -z-10 animate-pulse duration-1000 opacity-90" />
             <div className="absolute w-[220px] sm:w-[290px] h-[220px] sm:h-[290px] rounded-full bg-[#c9eff5] -z-10" />
@@ -110,24 +104,6 @@ const Login = () => {
               alt="Healthcare Professionals Team"
               className="w-full max-w-[380px] h-auto object-contain drop-shadow-xl select-none pointer-events-none rounded-2xl"
             />
-          </div>
-
-          {/* Bottom Enterprise Trust Markers */}
-          <div className="w-full flex items-center justify-center gap-3 sm:gap-5 pt-3 text-[11px] sm:text-xs font-semibold text-[#00828e]/80 border-t border-[#ccebf0]">
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-[#00a8b5]" />
-              <span>HIPAA Compliant</span>
-            </div>
-            <span className="text-[#a0dbe2]">•</span>
-            <div className="flex items-center gap-1.5">
-              <Activity className="w-4 h-4 text-[#00a8b5]" />
-              <span>99.9% Uptime</span>
-            </div>
-            <span className="text-[#a0dbe2] hidden sm:inline">•</span>
-            <div className="hidden sm:flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-[#00a8b5]" />
-              <span>Smart Rostering</span>
-            </div>
           </div>
         </div>
 
@@ -167,9 +143,6 @@ const Login = () => {
               <div className="flex items-center gap-1">
                 <span className="text-xl font-black text-slate-800 tracking-tight">Health</span>
                 <span className="text-xl font-black text-[#00a8b5]">+</span>
-                <span className="text-xs uppercase font-extrabold tracking-widest text-[#00a8b5] ml-1 bg-[#e6f8fa] px-2 py-0.5 rounded-full">
-                  Lifeline
-                </span>
               </div>
 
               <h2 className="mt-2.5 text-2xl font-extrabold text-slate-800 tracking-tight">
@@ -320,7 +293,7 @@ const Login = () => {
             {/* Quick Demo Profiles (Clean 1-Click Buttons) */}
             <div className="mt-4 pt-3.5 border-t border-slate-100 text-center">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                ⚡ Quick Demo Profiles
+                Quick Demo Profiles
               </span>
               <div className="grid grid-cols-2 gap-1.5 text-[11px]">
                 <button
@@ -332,7 +305,7 @@ const Login = () => {
                       : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
                   }`}
                 >
-                  <span className="font-bold block text-slate-800">👔 Dr. Sarah</span>
+                  <span className="font-bold block text-slate-800">Dr. Sarah</span>
                   <span className="text-[10px] text-slate-500">Manager (ER)</span>
                 </button>
 
@@ -345,16 +318,10 @@ const Login = () => {
                       : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
                   }`}
                 >
-                  <span className="font-bold block text-slate-800">🩺 Nurse Arun</span>
+                  <span className="font-bold block text-slate-800">Nurse Arun</span>
                   <span className="text-[10px] text-slate-500">Staff (Nurse)</span>
                 </button>
               </div>
-            </div>
-
-            {/* Terminal Security Badge */}
-            <div className="mt-3.5 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#00a8b5]" />
-              <span>256-Bit Encrypted Healthcare Gateway</span>
             </div>
           </div>
         </div>
