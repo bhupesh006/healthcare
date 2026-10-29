@@ -55,7 +55,7 @@ app.use('/api/departments', require('./routes/departmentRoutes'));
 app.use('/api/attendance', require('./routes/attendanceRoutes'));
 
 // Basic health check route
-app.get('/', (req, res) => {
+app.get(['/', '/api'], (req, res) => {
   res.send('Health+ Clinical API is running...');
 });
 
